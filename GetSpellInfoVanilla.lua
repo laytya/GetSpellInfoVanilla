@@ -14,7 +14,18 @@ function GetSpellInfoVanilla:PLAYER_ENTERING_WORLD()
 
 end
 
+
 function GetSpellInfoById(id)
+	local name, rank, icon, castTime, minRange, maxRange
+	local v = SpellsDB[id]
+	if type(id) == "number" then
+		return v.n, v.r, 
+		
+	elseif type(id) == "string" then
+	
+	else
+		return
+	end
 	local name, rank, icon, cost, isFunnel, powerType
 	name = GetSpellInfoVanillaDB["spells"][id]["name"]
 	rank = GetSpellInfoVanillaDB["spells"][id]["rank"]
