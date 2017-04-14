@@ -1,6 +1,10 @@
-local low = string.lower
+local low,gsub = string.lower,string.gsub
 
-
+function trim(s)
+  return gsub(gsub(s,"^%s+", ""),"%s+$", "")
+end
+--require "-1-\\spells.lua"
+--[[
 local function log(msg) DEFAULT_CHAT_FRAME:AddMessage(msg) end -- alias for convenience
 local GetSpellInfoVanilla = CreateFrame("Frame", nil, UIParent, "ActionButtonTemplate")
 
@@ -16,12 +20,12 @@ end
 function GetSpellInfoVanilla:PLAYER_ENTERING_WORLD()
 
 end
-
+--]]
 -- Returns: name, rank, icon, castTime, minRange, maxRange, spellSchool
 function GetSpellInfoById(id)
 	if type(id) == "number" and SpellsDB[id] then
 		local s = SpellsDB[id]
-		return s.n, s.r, GlobalIconsDB[s.i or 1], GlobalCastingTime[s.c or 1], GlobalSpellRange[s.ra].mn, GlobalSpellRange[s.ra].mx, s.s, s.m or 0
+		return s.n, s.r, GlobalIconsDB[s.i or 1], GlobalCastingTime[s.c or 1], GlobalSpellRange[s.ra].mn, GlobalSpellRange[s.ra].mx, GlobalSpellSchool[s.s]
 	end
 end
 
@@ -36,46 +40,26 @@ function GetSpellIdByIcon(Icon)
 	if type(Icon) ~= "string" then return end
 	local shortIcon
 	
-	for x in split(Icon,"\\") do
+	for x in string.gfind(Icon,"[^\\]+") do
 		shortIcon = x
 	end
+	local iconid
+	for k,v in pairs(GlobalIconsDB) do
+		if v == shortIcon or v == Icon then
+		  iconid = k
+		  break
+		end
+	end
+	
+	if not iconid then return end
 	
 	local resultArray = {}
 	for id, v in pairs(SpellsDB) do
-		if v.i == shortIcon or v.i == Icon then
+		if v.i == iconid then
 			table.insert(resultArray, id)
 		end
 	end
-	if table.getn(resultArray) = 1 then
-		return resultArray[1]
-	elseif table.getn(resultArray) > 1 then
-		return resultArray
-	end
-end
-
-function GetSpellIdByName(Name)
-	if type(Name) ~= "string" then return end
-	
-	local rank = getRankFromName(Name)
-	local shortName = string.sub(Name,rank or "","")
-	
-	Name = low(Name)
-	rank = rank and low(rank) or nil
-	shortName = low(shortName)
-	
-	local resultArray = {}
-	for id, v in pairs(SpellsDB) do
-		local name = low(v.n)
-		local crank = low(v.r or "")
-		if rank then
-			if rank == crank and (name == shortName or name == Name) then
-				table.insert(resultArray, id)
-			end
-		elseif (name == shortName or name == Name) then
-			table.insert(resultArray, id)
-		end
-	end
-	if table.getn(resultArray) = 1 then
+	if table.getn(resultArray) == 1 then
 		return resultArray[1]
 	elseif table.getn(resultArray) > 1 then
 		return resultArray
@@ -91,6 +75,41 @@ local function getRankFromName(name)
 		end
 	end
 end
+
+function GetSpellIdByName(Name)
+	if type(Name) ~= "string" then return end
+	
+	Name = trim(Name)
+	local rank = getRankFromName(Name)
+	local shortName = rank and string.gsub(Name,rank,"") or Name
+	
+	Name = low(Name)	
+	rank = rank and low(rank) or nil
+	shortName = trim(low(shortName))
+	
+	print(Name,rank,shortName)
+	
+	local resultArray = {}
+	for id, v in pairs(SpellsDB) do
+		local name = low(v.n)
+		local crank = low(v.r or "")
+		--print(name, crank)
+		if rank then
+			if rank == crank and (name == shortName or name == Name) then
+				table.insert(resultArray, id)
+			end
+		elseif (name == shortName or name == Name) then
+			table.insert(resultArray, id)
+		end
+	end
+	if table.getn(resultArray) == 1 then
+		return resultArray[1]
+	elseif table.getn(resultArray) > 1 then
+		return resultArray
+	end
+end
+
+
 
 function GetSpellInfoByIconAndName(Icon, Name)
 	local resultArray = {}
@@ -122,3 +141,5 @@ function GSIV_Test()
 		log(k.."  "..v["name"])
 	end
 end
+
+

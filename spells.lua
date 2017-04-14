@@ -22359,6 +22359,7 @@ SpellsDB = {
 }
 
 GlobalSpellSchool = {
+[0]="Physical",
 [1]="Holy",
 [2]="Fire",
 [3]="Nature",
